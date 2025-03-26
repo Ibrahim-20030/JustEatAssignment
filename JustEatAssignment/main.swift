@@ -6,7 +6,23 @@
 //
 
 import Foundation
-
+//need to decode name cuisine rating address
+// define swift structs
+struct Responses:Codable{
+    let restaurants: [Restaurant]
+}
+struct Restaurant:Codable{
+    let name:String
+    let cuisines:[Cuisine]
+    let rating:Rating?
+    let address: String
+}
+struct Rating:Codable{
+    let starRating: Double
+}
+struct Cuisine:Codable{
+    let name: String
+}
 // 1. Ask the user to enter a UK postcode
 print("Enter your postcode")
 // 2. Read their input from the console
@@ -44,6 +60,7 @@ if let postcode = readLine(), !postcode.isEmpty{
 }else{
     print("you didn't enter a postcode")
 }
+
 //EC4M7RF
 sleep(10)
 
