@@ -52,18 +52,35 @@ if let postcode = readLine(), !postcode.isEmpty{
         do{
             let decoded = try JSONDecoder().decode(Responses.self,from:data)
             let firstTen = decoded.restaurants.prefix(10)
-            for (index, restaurant) in firstTen.enumerated(){
-                print("restaurant #\(index+1)")
-                print("name:\(restaurant.name)")
-                print("cuisines:\(restaurant.cuisines.map{$0.name}.joined(separator:", "))")
-                if let rating = restaurant.rating?.starRating {
-                    print("rating: \(rating)")
+            let allowedCuisines = [
+                "Pizza", "Indian", "Chinese", "Thai", "Japanese", "Korean", "Mexican", "Turkish",
+                "Greek", "Lebanese", "Italian", "Vietnamese", "Burgers", "Sandwiches", "Steak",
+                "Seafood", "Salads", "Breakfast", "Lunch", "Dinner", "Pasta", "Grill", "BBQ",
+                "Vegan", "Vegetarian", "Halal", "Healthy", "Desserts", "Bakery"
+            ]
+
+            for (index, restaurant) in firstTen.enumerated() {
+                print("\n Restaurant #\(index + 1)")
+                print(" Name: \(restaurant.name)")
+
+                let cleanCuisines = restaurant.cuisines
+                    .map { $0.name }
+                    .filter { cuisine in
+                        allowedCuisines.contains(where: { cuisine.localizedCaseInsensitiveContains($0) })
+                    }
+                    .joined(separator: ", ")
+                print(" Cuisines: \(cleanCuisines.isEmpty ? "N/A" : cleanCuisines)")
+
+                if let rating = restaurant.rating?.starRating, rating > 0 {
+                    print(" Rating: \(rating)")
                 } else {
-                    print("rating: N/A")
+                    print(" Rating: Not yet rated")
                 }
-                print("Address:\(restaurant.address.firstLine ?? "N/A"),\(restaurant.address.postCode ?? "")")
+
+                let fullAddress = "\(restaurant.address.firstLine ?? "N/A"), \(restaurant.address.postCode ?? "")"
+                print(" Address: \(fullAddress)")
+                print("──────────────────────────────")
             }
-            
         }catch {
             print("decoding failed \(error)")
             if let jsonString = String(data: data, encoding: .utf8) {
