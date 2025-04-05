@@ -38,6 +38,13 @@ if let postcode = readLine(), !postcode.isEmpty{
         exit(1)
     }
     print("URL is valid \(url)")
+    let allowedCuisines = [
+        "Pizza", "Burgers", "Indian", "Thai", "Chinese", "Japanese", "Korean", "Turkish",
+        "Greek", "Italian", "Vietnamese", "Salads", "Breakfast", "Lunch", "Dinner",
+        "Seafood", "Sushi", "Grill", "BBQ", "Healthy", "Vegetarian", "Vegan", "Steak",
+        "Pasta", "Bakery", "Sandwiches", "Mexican", "Lebanese", "Caribbean", "African",
+        "Middle Eastern"
+    ]
     URLSession.shared.dataTask(with: url) { data, response, error in
         if let error = error {
             print("Request failed: \(error.localizedDescription)")
@@ -60,16 +67,24 @@ if let postcode = readLine(), !postcode.isEmpty{
             ]
 
             for (index, restaurant) in firstTen.enumerated() {
+                // Clean the cuisines
+                let cleanCuisines = restaurant.cuisines
+                    .map { $0.name }
+                    .filter { name in
+                        allowedCuisines.contains(where: { allowed in
+                            name.localizedCaseInsensitiveContains(allowed)
+                        })
+                    }
+
+                // Skip if it’s clearly a non-restaurant
+                if cleanCuisines.isEmpty || restaurant.name.lowercased().contains("grocery") {
+                    continue
+                }
                 print("\n Restaurant #\(index + 1)")
                 print(" Name: \(restaurant.name)")
 
-                let cleanCuisines = restaurant.cuisines
-                    .map { $0.name }
-                    .filter { cuisine in
-                        allowedCuisines.contains(where: { cuisine.localizedCaseInsensitiveContains($0) })
-                    }
-                    .joined(separator: ", ")
-                print(" Cuisines: \(cleanCuisines.isEmpty ? "N/A" : cleanCuisines)")
+               
+                print(" Cuisines: \(cleanCuisines.isEmpty ? "N/A" : cleanCuisines.joined(separator: ", "))")
 
                 if let rating = restaurant.rating?.starRating, rating > 0 {
                     print(" Rating: \(rating)")
