@@ -27,6 +27,7 @@ struct Rating:Codable{
 struct Cuisine:Codable{
     let name: String
 }
+
 // 1. Ask the user to enter a UK postcode
 print("Enter your postcode")
 // 2. Read their input from the console
@@ -38,13 +39,7 @@ if let postcode = readLine(), !postcode.isEmpty{
         exit(1)
     }
     print("URL is valid \(url)")
-    let allowedCuisines = [
-        "Pizza", "Burgers", "Indian", "Thai", "Chinese", "Japanese", "Korean", "Turkish",
-        "Greek", "Italian", "Vietnamese", "Salads", "Breakfast", "Lunch", "Dinner",
-        "Seafood", "Sushi", "Grill", "BBQ", "Healthy", "Vegetarian", "Vegan", "Steak",
-        "Pasta", "Bakery", "Sandwiches", "Mexican", "Lebanese", "Caribbean", "African",
-        "Middle Eastern"
-    ]
+    let semaphore = DispatchSemaphore(value: 0)
     URLSession.shared.dataTask(with: url) { data, response, error in
         if let error = error {
             print("Request failed: \(error.localizedDescription)")
@@ -60,10 +55,17 @@ if let postcode = readLine(), !postcode.isEmpty{
             let decoded = try JSONDecoder().decode(Responses.self,from:data)
             let firstTen = decoded.restaurants.prefix(10)
             let allowedCuisines = [
-                "Pizza", "Indian", "Chinese", "Thai", "Japanese", "Korean", "Mexican", "Turkish",
-                "Greek", "Lebanese", "Italian", "Vietnamese", "Burgers", "Sandwiches", "Steak",
-                "Seafood", "Salads", "Breakfast", "Lunch", "Dinner", "Pasta", "Grill", "BBQ",
-                "Vegan", "Vegetarian", "Halal", "Healthy", "Desserts", "Bakery"
+                "Pizza", "Burgers", "Indian", "Thai", "Chinese", "Japanese", "Korean", "Turkish",
+                "Greek", "Italian", "Vietnamese", "Lebanese", "Caribbean", "African", "Middle Eastern",
+                "Mexican", "American", "British", "Spanish", "French", "German", "Portuguese",
+                "Brazilian", "Peruvian", "Colombian", "Argentinian", "Pakistani", "Bangladeshi",
+                "Nigerian", "Ethiopian", "South Indian", "Sri Lankan", "Nepalese", "Persian",
+                "Iranian", "Indonesian", "Malaysian", "Filipino", "Kurdish", "Ghanaian",
+                "Vietnamese", "Taiwanese", "Jamaican", "Cantonese", "Syrian", "Polish", "Ukrainian",
+                "Vegetarian", "Vegan", "Halal", "Healthy", "Salads", "Steak", "Grill", "BBQ", "Pasta",
+                "Seafood", "Sandwiches", "Wraps", "Bagels", "Biryani", "Poke", "Burritos",
+                "Doughnuts", "Waffles", "Crepes", "Cakes", "Bakery", "Desserts", "Bubble Tea",
+                "Smoothies", "Ice Cream", "Coffee", "Noodles", "Sushi"
             ]
 
             for (index, restaurant) in firstTen.enumerated() {
@@ -93,10 +95,10 @@ if let postcode = readLine(), !postcode.isEmpty{
                 }
 
                 let fullAddress = "\(restaurant.address.firstLine ?? "N/A"), \(restaurant.address.postCode ?? "")"
-                print(" Address: \(fullAddress)")
+                print(" Address: \(fullAddress)\(postcode)")
                 print("──────────────────────────────")
             }
-        }catch {
+        } catch {
             print("decoding failed \(error)")
             if let jsonString = String(data: data, encoding: .utf8) {
                 print(jsonString)
@@ -104,15 +106,20 @@ if let postcode = readLine(), !postcode.isEmpty{
                 print(" Could not convert data to string")
             }
         }
+        semaphore.signal()
+            
+       
         
         }.resume()
+    semaphore.wait()
+    
 }
 else{
     print("you didn't enter a postcode")
 }
 
 //EC4M7RF
-RunLoop.main.run()
+
 
 
 
